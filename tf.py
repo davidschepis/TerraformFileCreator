@@ -69,9 +69,10 @@ def create_rg(user):
     neti_text += '\t\tpublic_ip_address_id = azurerm_public_ip.publicip.id\n\t}\n}'
     file.write(vnet_text + subnet_text + ip_text + neti_text)
     
+    #call bash script
     subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
     #subprocess.run(["powershell", "cd terraform-manifests; terraform fmt"])
-    
+    main_screen(user)
 
 def remove_tf_files(user):
     exists = os.path.isdir("terraform-manifests")
