@@ -38,6 +38,11 @@ def create_rg(user):
                '')
     #subprocess.run(["powershell", "cd terraform-manifests; terraform fmt"])
     #subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
+    #create resource group
+    file = open("terraform-manifests/c2-version.tf", "x")
+    file.write('resource "azurerm_resource_group" "rg-1" {\n\tname = "rg-1"\n\tlocation="East US"\n}')
+    #create VNET
+    
 
 def remove_tf_files(user):
     exists = os.path.isdir("terraform-manifests")
