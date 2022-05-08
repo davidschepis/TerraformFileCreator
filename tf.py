@@ -34,10 +34,10 @@ def create_rg(user):
     os.mkdir("terraform-manifests")
     #create terraform block
     file = open("terraform-manifests/c1-version.tf", "x")
-    file.write('terraform {\n\trequired_version=">=1.0.0"\n\trequired_providers {\n\t\tazurerm={\n\t\t\tsource="hashicorp/azurerm"\n\t\t\tversion=">=2.0"\n\t\t } \n\t } \n }' + 
+    file.write('terraform {\n\trequired_version=">=1.0.0"\n\trequired_providers {\n\t\tazurerm={\n\t\t\tsource="hashicorp/azurerm"\n\t\t\tversion=">=2.0"\n\t\t } \n\t } \n }\nprovider "azurerm" {\n\tfeatures{}\n}' + 
                '')
     #subprocess.run(["powershell", "cd terraform-manifests; terraform fmt"])
-    subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
+    #subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
 
 def remove_tf_files(user):
     exists = os.path.isdir("terraform-manifests")
