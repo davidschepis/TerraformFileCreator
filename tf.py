@@ -36,12 +36,41 @@ def create_rg(user):
     file = open("terraform-manifests/c1-version.tf", "x")
     file.write('terraform {\n\trequired_version=">=1.0.0"\n\trequired_providers {\n\t\tazurerm={\n\t\t\tsource="hashicorp/azurerm"\n\t\t\tversion=">=2.0"\n\t\t } \n\t } \n }\nprovider "azurerm" {\n\tfeatures{}\n}' + 
                '')
-    #subprocess.run(["powershell", "cd terraform-manifests; terraform fmt"])
-    #subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
     #create resource group
-    file = open("terraform-manifests/c2-version.tf", "x")
+    file = open("terraform-manifests/c2-resource-group.tf", "x")
     file.write('resource "azurerm_resource_group" "rg-1" {\n\tname = "rg-1"\n\tlocation="East US"\n}')
     #create VNET
+    file = open("terraform-manifests/c3-virtual-network.tf", "x")
+    vnet_text = 'resource "azurerm_virtual_network" "vnet" {'
+    vnet_text += '\n\tname = "vnet-1"'
+    vnet_text += '\n\taddress_space = ["10.0.0.0/16"]'
+    vnet_text += '\n\tlocation = azurerm_resource_group.rg-1.location'
+    vnet_text += '\n\tresource_group_name = azurerm_resource_group.rg-1.name'
+    vnet_text += '\n\ttags = {\n\t\t"Env" = "Dev"\n\t}\n}\n'
+    subnet_text = 'resource "azurerm_subnet" "subnet" {\n'
+    subnet_text += '\tname = "subnet"\n'
+    subnet_text += '\tresource_group_name = azurerm_resource_group.rg-1.name\n'
+    subnet_text += '\tvirtual_network_name = azurerm_virtual_network.vnet.name\n'
+    subnet_text += '\taddress_prefixes = ["10.0.2.0/24"]\n}\n'
+    ip_text = 'resource "azurerm_public_ip" "publicip" {\n'
+    ip_text += '\tname = "publicip"\n'
+    ip_text += '\tresource_group_name = azurerm_resource_group.rg-1.name\n'
+    ip_text += '\tlocation = azurerm_resource_group.rg-1.location\n'
+    ip_text += '\tallocation_method = "Static"\n'
+    ip_text += '\ttags = {\n\t\tenvironment = "Dev"\n\t}\n}\n'
+    neti_text = 'resource "azurerm_network_interface" "vmnic" {\n'
+    neti_text += '\tname = "vmnic"\n'
+    neti_text += '\tlocation = azurerm_resource_group.rg-1.location\n'
+    neti_text += '\tresource_group_name = azurerm_resource_group.rg-1.name\n'
+    neti_text += '\tip_configuration {\n'
+    neti_text += '\t\tname = "internal"\n'
+    neti_text += '\t\tsubnet_id = azurerm_subnet.subnet.id\n'
+    neti_text += '\t\tprivate_ip_address_allocation = "Dynamic"\n'
+    neti_text += '\t\tpublic_ip_address_id = azurerm_public_ip.publicip.id\n\t}\n}'
+    file.write(vnet_text + subnet_text + ip_text + neti_text)
+    
+    subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
+    #subprocess.run(["powershell", "cd terraform-manifests; terraform fmt"])
     
 
 def remove_tf_files(user):
