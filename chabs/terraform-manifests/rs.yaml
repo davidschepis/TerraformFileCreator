@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata: 
+  name: note-taker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: note-taker
+  template:  
+    metadata: 
+      name: note-taker
+      labels: 
+        app: note-taker
+    spec:
+      containers:
+        - name: note-taker
+          image: davidsdeveloper/note-taker:latest
+          ports: 
+            - containerPort: 3001 
+          # resources:
+          #   limits:
+          #     memory: "256M"
+          #     cpu: "256M"
