@@ -7,15 +7,15 @@ function appendToFile(noteTitle, noteText, id) {
         text: noteText,
         id: id
     };
-    fs.readFile("./db/db.json", (err, data) => {
+    fs.readFile("../mnt/note-taker-db/db.json", (err, data) => {
         if (err) {
-            console.err(`Error reading from ./db/db.json ${err}`);
+            console.err(`Error reading from ../mnt/note-taker-db/db.json ${err}`);
         }
         const jsonData = JSON.parse(data);
         jsonData.push(obj);
-        fs.writeFile("./db/db.json", JSON.stringify(jsonData), (err) => {
+        fs.writeFile("../mnt/note-taker-db/db.json", JSON.stringify(jsonData), (err) => {
             if (err) {
-                console.err(`Error writing to ./db/db.json ${err}`);
+                console.err(`Error writing to ../mnt/note-taker-db/db.json ${err}`);
             }
         });
     });

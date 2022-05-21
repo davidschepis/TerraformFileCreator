@@ -19,7 +19,7 @@ spec:
             claimName: note-taker-disk
       containers:
         - name: note-taker
-          image: davidsdeveloper/note-taker:latest
+          image: davidsdeveloper/note-taker:v2
           ports: 
             - containerPort: 3001 
           volumeMounts:

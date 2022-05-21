@@ -1,5 +1,5 @@
 #! /bin/bash
 cd ../kube-manifests
-kubectl apply -f rs.yaml
-kubectl apply -f lb.yaml
-kubectl apply -f pvc.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f load-balancer.yaml
+kubectl apply -f volume.yaml

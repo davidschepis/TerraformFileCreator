@@ -11,6 +11,13 @@ const api = require("./routes/index");
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+//create db.json file if it doesn't exist
+fs.writeFile("../mnt/note-taker-db/db.json", "[]", { flag: 'wx' }, (err) => {
+    if (err) {
+        console.log(err)
+    }
+});
+
 //middleware
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());

@@ -1,6 +1,6 @@
 #! /bin/bash
 cd ../kube-manifests
-kubectl delete -f rs.yaml
-kubectl delete -f lb.yaml
-kubectl delete -f pvc.yaml
+kubectl delete -f deployment.yaml
+kubectl delete -f load-balancer.yaml
+kubectl delete -f volume.yaml
 
