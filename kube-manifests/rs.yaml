@@ -13,12 +13,19 @@ spec:
       labels: 
         app: note-taker
     spec:
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: note-taker-disk
       containers:
         - name: note-taker
           image: davidsdeveloper/note-taker:latest
           ports: 
             - containerPort: 3001 
+          volumeMounts:
+            - mountPath: "/mnt/note-taker-db"
+              name: volume
           # resources:
           #   limits:
-          #     memory: "256M"
-          #     cpu: "256M"
+          #     memory: "10G"
+          #     cpu: "10G"
