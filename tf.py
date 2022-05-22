@@ -3,6 +3,7 @@ import os
 import subprocess
 import shutil
 import time
+import json
 
 from DB.DB_Access import DB
 
@@ -148,7 +149,6 @@ def build_image(user):
         docker_menu(user)
         
 def start_local(user):
-    version = get_image_version()
     rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/docker_local_create.sh"])
     if rval == 0:
         print("Local instance started! url=localhost:3001")
@@ -200,8 +200,15 @@ def create_cluster(user):
 def create_deployment(user):
     rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/create_deployment.sh"])
     if rval == 0:
-        print("Deployment creating and running, returning to menu")
-        kubernetes_menu(user)
+        try:
+            f = open("./kube-manifests/services.json")
+            services = json.load(f)
+            ip = services['items'][1]['status']['loadBalancer']['ingress'][0]['ip']
+            print("Deployment creation complete!")
+            print(f"Running on IP {ip}")
+            print("Please wait 30sec to 1min to load")
+        except Exception as e:
+            print(e)
     else:
         print("Something went wrong")
         kubernetes_menu(user)
