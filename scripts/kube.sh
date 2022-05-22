@@ -1,4 +1,5 @@
 #! /bin/bash
+cd kube-manifests
 echo "creating resource group"
 az group create --name note-taker-rg --location centralus
 sleep 1

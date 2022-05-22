@@ -207,13 +207,23 @@ def create_deployment(user):
     else:
         print("Something went wrong")
         kubernetes_menu(user)
+
+def stop_deployment(user):
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/delete_deployment.sh"])
+    if rval == 0:
+        print("Deployment deleted, returning to menu")
+        kubernetes_menu(user)
+    else:
+        print("Something went wrong")
+        kubernetes_menu(user)
     
 def kubernetes_menu(user):
     user_input = -1
     while (user_input != 1 and user_input != 2 and user_input != 3):
         print("1. Create Resource Group, Cluster, and apply credentials")
         print("2. Create and Start Deployment")
-        print("3. Return to menu")
+        print("3. Stop/Delete deployment")
+        print("4. Return to menu")
         try:
             user_input = int(input())
             break
@@ -224,6 +234,8 @@ def kubernetes_menu(user):
         create_cluster(user)
     elif user_input == 2:
         create_deployment(user)
+    elif user_input == 3:
+        stop_deployment(user)
     else:
         main_screen(user)
 
