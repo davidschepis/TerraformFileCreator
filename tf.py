@@ -1,11 +1,9 @@
-from re import sub
 import sys
 import os
 import subprocess
 import shutil
 import time
 
-from pip import main
 from DB.DB_Access import DB
 
 def create_user(user):

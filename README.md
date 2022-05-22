@@ -22,10 +22,13 @@ To install necessary dependencies, run the following command:
 
 ```
 Please ensure the Azure and Terraform CLI are installed as well as Python 3.5+
+If using local instances, please run the included init.sql file in the DB directory
 ```
 
  ## Usage
-Application assumes a local DB exists with credentials username:root, password:root
+```
+python tf.py <username> <password>
+```
 
  ## License
 This project is not licensed
