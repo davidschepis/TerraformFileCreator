@@ -1,4 +1,8 @@
 #! /bin/bash
-cd ..
-docker build -t davidsdeveloper/note-taker:v2 .
-docker push davidsdeveloper/note-taker:v2
+echo "Version Number is now $1"
+echo "Building new image"
+docker build -t davidsdeveloper/note-taker:$1 .
+sleep 1
+echo "Pushing new image to docker hub"
+docker push davidsdeveloper/note-taker:$1
+sleep 1
