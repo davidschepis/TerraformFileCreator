@@ -149,7 +149,7 @@ def build_image(user):
         
 def start_local(user):
     version = get_image_version()
-    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/docker_local_create.sh", f"{version}"])
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/docker_local_create.sh"])
     if rval == 0:
         print("Local instance started! url=localhost:3001")
         docker_menu(user)
