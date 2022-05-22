@@ -21,7 +21,7 @@ echo "Planning Terraform files"
 echo "Type yes to apply changes, anything else to quit"
 read user_input
 if [ "$user_input" = yes ]; then
-    terraform apply >> history.txt
+    terraform apply -auto-approve >> history.txt
 else
     echo "Terraform script ending"
 fi
