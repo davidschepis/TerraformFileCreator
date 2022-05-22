@@ -3,6 +3,7 @@ import sys
 import os
 import subprocess
 import shutil
+import time
 
 from pip import main
 from DB.DB_Access import DB
@@ -70,7 +71,7 @@ def create_rg(user):
     file.write(vnet_text + subnet_text + ip_text + neti_text)
     
     #call bash script
-    subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./ex.sh"])
+    subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./scripts/terraform.sh"])
     #subprocess.run(["powershell", "cd terraform-manifests; terraform fmt"])
     main_screen(user)
 
@@ -85,34 +86,179 @@ def remove_tf_files(user):
             main_screen(user)
         except OSError as e:
             print(e)
-
-def main_screen(user):
+            
+def terraform_menu(user):
     user_input = -1
     while (user_input != 1 and user_input != 2 and user_input != 3):
-        print("1. Create Resource Group")
-        print("2. Add Authorized User")
-        print("3. Show Users")
-        print("4. Delete current Terraform files")
-        print("5. Exit")
+        print("1. Create and run terraform files")
+        print("2. Delete terraform files")
+        print("3. Return to menu")
         try:
             user_input = int(input())
             break
         except ValueError:
-            print("Please enter a 1, 2, or 3")
+            print("Please enter a a number (1-3)")
             continue
-    if user_input == 5:
-        exit()
-    elif user_input == 3:
-        list_users()
-        main_screen(user)
+    if user_input == 1:
+        create_rg(user)
     elif user_input == 2:
-        create_user(user)
-    elif user_input == 4:
         remove_tf_files(user)
     else:
-        create_rg(user)
+        main_screen(user)
         
+def get_image_version():
+    try:
+        f = open("docker-current-version.txt", "r")
+        version = f.read()
+        version = int(version)
+        f.close()
+        return version
+    except FileNotFoundError:
+        print("Error! docker-current-version.txt not found, please create this file with the current version number")
+        return -1
+    finally:
+        f.close()
 
+def increment_version():
+    try:
+        version = get_image_version()
+        if version == -1:
+            return -1
+        f = open("docker-current-version.txt", "w")
+        version += 1
+        f.write(str(version))
+        f.close()
+        return version
+    except FileNotFoundError:
+        print("Error! docker-current-version.txt not found, please create this file with the current version number")
+        return -1
+    except Exception as e:
+        print(e)
+        print("Please ensure docker-current-version.txt only contains a number which is the version number")
+        return -1
+        
+def build_image(user):
+    version = increment_version()
+    if version == -1:
+        docker_menu(user)
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', f"./scripts/create_docker_image.sh", f"{version}"])
+    if rval == 0:
+        print("Image successfully built and published to Docker Hub! Returning to menu")
+        docker_menu(user)
+    else:
+        print("Unable to create image, please check file system")
+        docker_menu(user)
+        
+def start_local(user):
+    version = get_image_version()
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/docker_local_create.sh", f"{version}"])
+    if rval == 0:
+        print("Local instance started! url=localhost:3001")
+        docker_menu(user)
+    else:
+        print("Unable to start local docker container")
+        docker_menu(user)
+        
+def stop_local(user):
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/docker_local_delete.sh"])
+    if rval == 0:
+        print("Local container stopped and removed")
+        docker_menu(user)
+    else:
+        print("Unable to stop/remove local docker container")
+        docker_menu(user)
+       
+def docker_menu(user):
+    user_input = -1
+    while (user_input != 1 and user_input != 2 and user_input != 3 and user_input != 4):
+        print("1. Build/Publish Image")
+        print("2. Start local instance on port 3001")
+        print("3. Stop/Delete local instance")
+        print("4. Return to menu")
+        try:
+            user_input = int(input())
+            break
+        except ValueError:
+            print("Please enter a a number (1-3)")
+            continue
+    if user_input == 1:
+        build_image(user)
+    elif user_input == 2:
+        start_local(user)
+    elif user_input == 3:
+        stop_local(user)
+    else:
+        main_screen(user)
+        
+def create_cluster(user):
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/kube.sh"])
+    if rval == 0:
+        print("Cluster creation success, returning to menu")
+        kubernetes_menu(user)
+    else:
+        print("Something went wrong")
+        kubernetes_menu(user)
+        
+def create_deployment(user):
+    rval = subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', "./scripts/create_deployment.sh"])
+    if rval == 0:
+        print("Deployment creating and running, returning to menu")
+        kubernetes_menu(user)
+    else:
+        print("Something went wrong")
+        kubernetes_menu(user)
+    
+def kubernetes_menu(user):
+    user_input = -1
+    while (user_input != 1 and user_input != 2 and user_input != 3):
+        print("1. Create Resource Group, Cluster, and apply credentials")
+        print("2. Create and Start Deployment")
+        print("3. Return to menu")
+        try:
+            user_input = int(input())
+            break
+        except ValueError:
+            print("Please enter a a number (1-3)")
+            continue
+    if user_input == 1:
+        create_cluster(user)
+    elif user_input == 2:
+        create_deployment(user)
+    else:
+        main_screen(user)
+
+def main_screen(user):
+    user_input = -1
+    while (user_input != 1 and user_input != 2 and user_input != 3 and user_input != 4 and user_input != 5 and user_input != 6):
+        print("1. Terraform")
+        print("2. Docker")
+        print("3. Kubernetes")
+        print("4. Add User")
+        print("5. List Users")
+        print("6. Exit")
+        try:
+            user_input = int(input())
+            break
+        except ValueError:
+            print("Please enter a a number (1-6)")
+            continue
+    if user_input == 1:
+        terraform_menu(user)
+    elif user_input == 2:
+        docker_menu(user)
+    elif user_input == 3:
+        kubernetes_menu(user)
+    elif user_input == 4:
+        create_user(user)
+    elif user_input == 5:
+        list_users()
+        time.sleep(2)
+        main_screen(user)
+    else:
+        print("Goodbye")
+        time.sleep(1)
+        exit()
+        
 def start():
     args = str(sys.argv)
     if len(sys.argv) != 3:
