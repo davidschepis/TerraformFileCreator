@@ -36,9 +36,11 @@ def create_rg(user):
     file = open("terraform-manifests/c1-version.tf", "x")
     file.write('terraform {\n\trequired_version=">=1.0.0"\n\trequired_providers {\n\t\tazurerm={\n\t\t\tsource="hashicorp/azurerm"\n\t\t\tversion=">=2.0"\n\t\t } \n\t } \n }\nprovider "azurerm" {\n\tfeatures{}\n}' + 
                '')
+    file.close()
     #create resource group
     file = open("terraform-manifests/c2-resource-group.tf", "x")
     file.write('resource "azurerm_resource_group" "rg-1" {\n\tname = "rg-1"\n\tlocation="East US"\n}')
+    file.close()
     #create VNET
     file = open("terraform-manifests/c3-virtual-network.tf", "x")
     vnet_text = 'resource "azurerm_virtual_network" "vnet" {'
@@ -68,6 +70,7 @@ def create_rg(user):
     neti_text += '\t\tprivate_ip_address_allocation = "Dynamic"\n'
     neti_text += '\t\tpublic_ip_address_id = azurerm_public_ip.publicip.id\n\t}\n}'
     file.write(vnet_text + subnet_text + ip_text + neti_text)
+    file.close()
     
     #call bash script
     subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./scripts/terraform.sh"])
