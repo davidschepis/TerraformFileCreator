@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 echo "Changing into directory"
 sleep 1
 cd terraform-manifests
