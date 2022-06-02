@@ -34,12 +34,12 @@ def create_rg(user):
     os.mkdir("terraform-manifests")
     #create terraform block
     file = open("terraform-manifests/c1-version.tf", "x")
-    file.write('terraform {\n\trequired_version=">=1.0.0"\n\trequired_providers {\n\t\tazurerm={\n\t\t\tsource="hashicorp/azurerm"\n\t\t\tversion=">=2.0"\n\t\t } \n\t } \n }\nprovider "azurerm" {\n\tfeatures{}\n}' + 
+    file.write('terraform {\n\trequired_version=">=0.12"\n\trequired_providers {\n\t\tazurerm={\n\t\t\tsource="hashicorp/azurerm"\n\t\t\tversion="~>2.0"\n\t\t } \n\t } \n }\nprovider "azurerm" {\n\tfeatures{}\n}' + 
                '')
     file.close()
     #create resource group
     file = open("terraform-manifests/c2-resource-group.tf", "x")
-    file.write('resource "azurerm_resource_group" "rg-1" {\n\tname = "rg-1"\n\tlocation="East US"\n}')
+    file.write('resource "azurerm_resource_group" "rg-1" {\n\tname = "rg-1"\n\tlocation=var.resource_group_location\n}')
     file.close()
     #create VNET
     file = open("terraform-manifests/c3-virtual-network.tf", "x")
@@ -49,17 +49,36 @@ def create_rg(user):
     vnet_text += '\n\tlocation = azurerm_resource_group.rg-1.location'
     vnet_text += '\n\tresource_group_name = azurerm_resource_group.rg-1.name'
     vnet_text += '\n\ttags = {\n\t\t"Env" = "Dev"\n\t}\n}\n'
+    
     subnet_text = 'resource "azurerm_subnet" "subnet" {\n'
     subnet_text += '\tname = "subnet"\n'
     subnet_text += '\tresource_group_name = azurerm_resource_group.rg-1.name\n'
     subnet_text += '\tvirtual_network_name = azurerm_virtual_network.vnet.name\n'
     subnet_text += '\taddress_prefixes = ["10.0.2.0/24"]\n}\n'
+    
     ip_text = 'resource "azurerm_public_ip" "publicip" {\n'
     ip_text += '\tname = "publicip"\n'
     ip_text += '\tresource_group_name = azurerm_resource_group.rg-1.name\n'
     ip_text += '\tlocation = azurerm_resource_group.rg-1.location\n'
     ip_text += '\tallocation_method = "Static"\n'
     ip_text += '\ttags = {\n\t\tenvironment = "Dev"\n\t}\n}\n'
+    
+    nsg_text = 'resource "azurerm_network_security_group" "nsg" {\n'
+    nsg_text += '\tname = "nsg"\n'
+    nsg_text += '\tlocation = azurerm_resource_group.rg-1.location\n'
+    nsg_text += '\tresource_group_name = azurerm_resource_group.rg-1.name\n'
+    nsg_text += '\tsecurity_rule {\n'
+    nsg_text += '\t\tname = "SSH"\n'
+    nsg_text += '\t\tpriority = 1001\n'
+    nsg_text += '\t\tdirection = "Inbound"\n'
+    nsg_text += '\t\taccess = "Allow"\n'
+    nsg_text += '\t\tprotocol = "Tcp"\n'
+    nsg_text += '\t\tsource_port_range = "*"\n'
+    nsg_text += '\t\tdestination_port_range = "22"\n'
+    nsg_text += '\t\tsource_address_prefix = "*"\n'
+    nsg_text += '\t\tdestination_address_prefix = "*"\n'
+    nsg_text += '\t}\n}\n'
+    
     neti_text = 'resource "azurerm_network_interface" "vmnic" {\n'
     neti_text += '\tname = "vmnic"\n'
     neti_text += '\tlocation = azurerm_resource_group.rg-1.location\n'
@@ -68,9 +87,62 @@ def create_rg(user):
     neti_text += '\t\tname = "internal"\n'
     neti_text += '\t\tsubnet_id = azurerm_subnet.subnet.id\n'
     neti_text += '\t\tprivate_ip_address_allocation = "Dynamic"\n'
-    neti_text += '\t\tpublic_ip_address_id = azurerm_public_ip.publicip.id\n\t}\n}'
-    file.write(vnet_text + subnet_text + ip_text + neti_text)
+    neti_text += '\t\tpublic_ip_address_id = azurerm_public_ip.publicip.id\n\t}\n}\n'
+    
+    nsg_assoc_text = 'resource "azurerm_network_interface_security_group_association" "nsg_assoc" {\n'
+    nsg_assoc_text += '\tnetwork_interface_id = azurerm_network_interface.vmnic.id\n'
+    nsg_assoc_text += '\tnetwork_security_group_id = azurerm_network_security_group.nsg.id\n}\n'
+    
+    ssh_text = 'resource "tls_private_key" "example_ssh" {\n'
+    ssh_text += '\talgorithm = "RSA"\n'
+    ssh_text += '\trsa_bits  = 4096\n}\n'
+    
+    vm_text = 'resource "azurerm_linux_virtual_machine" "vm" {\n'
+    vm_text += '\tname                  = "vm"\n'
+    vm_text += '\tlocation              = azurerm_resource_group.rg-1.location\n'
+    vm_text += '\tresource_group_name   = azurerm_resource_group.rg-1.name\n'
+    vm_text += '\tnetwork_interface_ids = [azurerm_network_interface.vmnic.id]\n'
+    vm_text += '\tsize                  = "Standard_D2s_v3"\n'
+    vm_text += '\t os_disk {\n'
+    vm_text += '\t\t name                 = "osDisk"\n'
+    vm_text += '\t\tcaching              = "ReadWrite"\n'
+    vm_text += '\t\tstorage_account_type = "Premium_LRS"\n\t}\n'
+    vm_text += '\tsource_image_reference {\n'
+    vm_text += '\t\tpublisher = "Canonical"\n'
+    vm_text += '\t\toffer     = "UbuntuServer"\n'
+    vm_text += '\t\tsku       = "18.04-LTS"\n'
+    vm_text += '\t\tversion   = "latest"\n\t}\n'
+    vm_text += '\tcomputer_name                   = "vm"\n'
+    vm_text += '\tadmin_username                  = "azureuser"\n'
+    vm_text += '\tdisable_password_authentication = true\n'
+    vm_text += '\tadmin_ssh_key {\n'
+    vm_text += '\t\tusername   = "azureuser"\n'
+    vm_text += '\t\tpublic_key = tls_private_key.example_ssh.public_key_openssh\n\t}\n'
+    vm_text += '}'
+    
+    file.write(vnet_text + subnet_text + ip_text + nsg_text + neti_text + nsg_assoc_text + ssh_text + vm_text)
     file.close()
+    
+    file = open("terraform-manifests/variables.tf", "x")
+    var_text = 'variable "resource_group_location" {\n'
+    var_text += '\tdefault       = "centralus"\n'
+    var_text += '\tdescription   = "Location of the resource group."\n}'
+    file.write(var_text)
+    file.close()
+    
+    file = open("terraform-manifests/output.tf", "x")
+    output_text = 'output "resource_group_name" {\n'
+    output_text += '\tvalue = azurerm_resource_group.rg-1.name\n}\n'
+    output_text += 'output "public_ip_address" {\n'
+    output_text += '\tvalue = azurerm_linux_virtual_machine.vm.public_ip_address\n}\n'
+    output_text += 'output "tls_private_key" {\n'
+    output_text += '\tvalue     = tls_private_key.example_ssh.private_key_pem\n'
+    output_text += '\tsensitive = true\n}'
+    file.write(output_text)
+    file.close()
+    
+
+    
     
     #call bash script
     subprocess.call(['C:\\Program Files\\Git\\bin\\bash.exe', '-l', "./scripts/terraform.sh"])
