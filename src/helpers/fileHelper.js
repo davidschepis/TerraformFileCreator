@@ -1,5 +1,24 @@
 const fs = require("fs");
 
+checkFilePath = () => {
+    if (fs.existsSync("../mnt/note-taker-db")) {
+        console.log('Directory exists!');
+        return true
+    } else {
+        console.log('Directory not found.');
+        return false
+    }
+};
+
+let path = ""
+if (checkFilePath()) {
+    path = "../mnt/note-taker-db/db.json"
+}
+else {
+    path = "./db/db.json"
+}
+
+
 //Helper function to read from the db, append to it, and write it back
 function appendToFile(noteTitle, noteText, id) {
     const obj = {
@@ -7,13 +26,13 @@ function appendToFile(noteTitle, noteText, id) {
         text: noteText,
         id: id
     };
-    fs.readFile("../mnt/note-taker-db/db.json", (err, data) => {
+    fs.readFile(path, (err, data) => {
         if (err) {
             console.err(`Error reading from ../mnt/note-taker-db/db.json ${err}`);
         }
         const jsonData = JSON.parse(data);
         jsonData.push(obj);
-        fs.writeFile("../mnt/note-taker-db/db.json", JSON.stringify(jsonData), (err) => {
+        fs.writeFile(path, JSON.stringify(jsonData), (err) => {
             if (err) {
                 console.err(`Error writing to ../mnt/note-taker-db/db.json ${err}`);
             }
@@ -22,4 +41,4 @@ function appendToFile(noteTitle, noteText, id) {
     return obj;
 }
 
-module.exports = {appendToFile};
+module.exports = { appendToFile };

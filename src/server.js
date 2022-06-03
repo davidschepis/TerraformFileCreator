@@ -4,22 +4,33 @@ const path = require("path");
 //const db = require("./db/db.json"); Using this method won't allow the db to update in real time, you would have to restart the server after
 //every update
 const fs = require("fs");
-const {v4 : uuidv4} = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 const util = require("util");
 //const { json } = require("express/lib/response");
 const api = require("./routes/index");
 const PORT = process.env.PORT || 3001;
 const app = express();
 
-//create db.json file if it doesn't exist
-fs.writeFile("../mnt/note-taker-db/db.json", "[]", { flag: 'wx' }, (err) => {
-    if (err) {
-        console.log(err)
+checkFilePath = () => {
+    if (fs.existsSync("../mnt/note-taker-db")) {
+        console.log('Directory exists!');
+        return true
+    } else {
+        console.log('Directory not found.');
+        return false
     }
-});
+};
+
+if (checkFilePath()) {
+    fs.writeFile("../mnt/note-taker-db/db.json", "[]", { flag: 'wx' }, (err) => {
+        if (err) {
+            console.log(err)
+        }
+    });
+}
 
 //middleware
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 //custom middleware
