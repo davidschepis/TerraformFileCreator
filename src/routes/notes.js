@@ -4,6 +4,24 @@ const fs = require("fs");
 const {v4 : uuidv4} = require("uuid");
 const util = require("util");
 
+checkFilePath = () => {
+    if (fs.existsSync("../mnt/note-taker-db")) {
+        console.log('Directory exists!');
+        return true
+    } else {
+        console.log('Directory not found.');
+        return false
+    }
+};
+
+let path = ""
+if (checkFilePath()) {
+    path = "../mnt/note-taker-db/db.json"
+}
+else {
+    path = "./db/db.json"
+}
+
 //Read file promise
 const readFromFile = util.promisify(fs.readFile);
 
@@ -11,7 +29,7 @@ const readFromFile = util.promisify(fs.readFile);
 notes.get("/", (req, res) => {
     console.info(`${req.method} request received, responding with db.json`);
     //res.json(db);
-    readFromFile("../mnt/note-taker-db/db.json").then((data) => res.json(JSON.parse(data)));
+    readFromFile(path).then((data) => res.json(JSON.parse(data)));
 });
 
 //Handles POST /api/notes route, saves the request into the database and responds with the new database item
@@ -29,17 +47,17 @@ notes.post("/", (req, res) => {
 //Handles DELETE request, reads from the db, finds the corresponding id, removes the obj, and writes back
 notes.delete("/:id", (req, res) => {
     console.info(`${req.method} request received, deleting note with id: ${req.params.id}`);
-    fs.readFile("../mnt/note-taker-db/db.json", (err, data) => {
+    fs.readFile(path, (err, data) => {
         if (err) {
-            console.err(`Error reading from ../mnt/note-taker-db/db.json ${err}`);
+            console.err(`Error reading from ${path} ${err}`);
         }
         let db = JSON.parse(data);
         db = db.filter((i) => {
             return i.id !== req.params.id;
         });
-        fs.writeFile("../mnt/note-taker-db/db.json", JSON.stringify(db), (err) => {
+        fs.writeFile(path, JSON.stringify(db), (err) => {
             if (err) {
-                console.err(`Error writing to ../mnt/note-taker-db/db.json ${err}`);
+                console.err(`Error writing to ${path} ${err}`);
             }
         });
         console.info("Write back after deletion completed!");
